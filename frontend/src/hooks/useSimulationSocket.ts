@@ -8,7 +8,6 @@ export type ConnectionState = 'connecting' | 'connected' | 'disconnected';
 export function useSimulationSocket(url: string) {
   const [state, setState] = useState<ConnectionState>('connecting');
   const [message, setMessage] = useState<SimMessage | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closedByUnmount = useRef(false);
@@ -16,7 +15,6 @@ export function useSimulationSocket(url: string) {
   const connect = useCallback(() => {
     if (closedByUnmount.current) return;
     setState('connecting');
-    setError(null);
 
     const ws = new WebSocket(url);
     wsRef.current = ws;
@@ -26,11 +24,10 @@ export function useSimulationSocket(url: string) {
       try {
         const parsed = JSON.parse(event.data) as SimMessage;
         setMessage(parsed);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Invalid message');
+      } catch {
+        /* ignore malformed frame */
       }
     };
-    ws.onerror = () => setError('WebSocket error');
     ws.onclose = () => {
       setState('disconnected');
       if (!closedByUnmount.current) {
@@ -49,5 +46,5 @@ export function useSimulationSocket(url: string) {
     };
   }, [connect]);
 
-  return { state, message, error };
+  return { state, message };
 }

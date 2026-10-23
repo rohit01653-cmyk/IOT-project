@@ -15,3 +15,5 @@ export const CELL_COLORS: Record<number, string> = {
   4: '#8b5e34',
   5: '#9ca3af',
 };
+
+export type PlaceMode = 'fire' | 'person' | 'barrier';
